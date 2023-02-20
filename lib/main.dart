@@ -19,9 +19,7 @@ class WebView extends StatefulWidget {
 
 class _WebViewState extends State<WebView> {
   late final WebViewController controller;
-  bool downloading = false;
-  var progressString = "";
-  var file = "";
+  final String loadURL = 'http://m.naver.com';
 
   @override
   initState() {
@@ -51,7 +49,7 @@ class _WebViewState extends State<WebView> {
           },
         ),
       )
-      ..loadRequest(Uri.parse('http://14.52.220.140:8000/'));
+      ..loadRequest(Uri.parse(loadURL));
     // #enddocregion webview_controller
   }
 
@@ -85,9 +83,9 @@ class _WebViewState extends State<WebView> {
             actions: [
               TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
                     print("url: $url");
                     _downloadFile(url);
+                    Navigator.of(context).pop();
                   },
                   child: const Text("예")),
               TextButton(
