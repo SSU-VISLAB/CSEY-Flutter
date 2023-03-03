@@ -1,0 +1,266 @@
+// import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:share_plus/share_plus.dart';
+import 'custom_image.dart';
+import 'models/download_model.dart';
+
+import 'models/webview_model.dart';
+
+class LongPressAlertDialog extends StatefulWidget {
+  static const List<InAppWebViewHitTestResultType> hitTestResultSupported = [
+    InAppWebViewHitTestResultType.SRC_IMAGE_ANCHOR_TYPE,
+    InAppWebViewHitTestResultType.SRC_ANCHOR_TYPE,
+    InAppWebViewHitTestResultType.IMAGE_TYPE
+  ];
+
+  const LongPressAlertDialog(
+      {Key? key,
+      required this.webViewModel,
+      required this.hitTestResult,
+      this.requestFocusNodeHrefResult})
+      : super(key: key);
+
+  final WebViewModel webViewModel;
+  final InAppWebViewHitTestResult hitTestResult;
+  final RequestFocusNodeHrefResult? requestFocusNodeHrefResult;
+
+  @override
+  State<LongPressAlertDialog> createState() => _LongPressAlertDialogState();
+}
+
+class _LongPressAlertDialogState extends State<LongPressAlertDialog> {
+  var _isLinkPreviewReady = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      contentPadding: const EdgeInsets.all(0.0),
+      content: SingleChildScrollView(
+        child: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _buildDialogLongPressHitTestResult(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildDialogLongPressHitTestResult() {
+    if (widget.hitTestResult.type ==
+            InAppWebViewHitTestResultType.SRC_ANCHOR_TYPE ||
+        widget.hitTestResult.type ==
+            InAppWebViewHitTestResultType.SRC_IMAGE_ANCHOR_TYPE ||
+        (widget.hitTestResult.type ==
+                InAppWebViewHitTestResultType.IMAGE_TYPE &&
+            widget.requestFocusNodeHrefResult != null &&
+            widget.requestFocusNodeHrefResult!.url != null &&
+            widget.requestFocusNodeHrefResult!.url.toString().isNotEmpty)) {
+      return <Widget>[
+        _buildLinkTile(),
+        const Divider(),
+        _buildLinkPreview(),
+        const Divider(),
+        _buildCopyAddressLink(),
+        _buildShareLink(),
+      ];
+    } else if (widget.hitTestResult.type ==
+        InAppWebViewHitTestResultType.IMAGE_TYPE) {
+      return <Widget>[
+        _buildImageTile(),
+        const Divider(),
+        _buildDownloadImage(),
+        _buildShareImage(),
+      ];
+    }
+
+    return [];
+  }
+
+  Widget _buildLinkTile() {
+    var url =
+        widget.requestFocusNodeHrefResult?.url ?? Uri.parse("about:blank");
+    var faviconUrl = Uri.parse("${url.origin}/favicon.ico");
+
+    var title = widget.requestFocusNodeHrefResult?.title ?? "";
+    if (title.isEmpty) {
+      title = "Link";
+    }
+
+    return ListTile(
+      leading: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // CachedNetworkImage(
+          //   placeholder: (context, url) => CircularProgressIndicator(),
+          //   imageUrl: widget.requestFocusNodeHrefResult?.src != null ? widget.requestFocusNodeHrefResult!.src : faviconUrl,
+          //   height: 30,
+          // )
+          CustomImage(
+            url: widget.requestFocusNodeHrefResult?.src != null
+                ? Uri.parse(widget.requestFocusNodeHrefResult!.src!)
+                : faviconUrl,
+            maxWidth: 30.0,
+            height: 30.0,
+          )
+        ],
+      ),
+      title: Text(
+        title,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        widget.requestFocusNodeHrefResult?.url?.toString() ?? "",
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      isThreeLine: true,
+    );
+  }
+
+  Widget _buildLinkPreview() {
+    return ListTile(
+      subtitle: Container(
+        padding: const EdgeInsets.only(top: 15.0),
+        height: 250,
+        child: IndexedStack(
+          index: _isLinkPreviewReady ? 1 : 0,
+          children: <Widget>[
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+            InAppWebView(
+              gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                Factory<OneSequenceGestureRecognizer>(
+                  () => EagerGestureRecognizer(),
+                ),
+              },
+              initialUrlRequest:
+                  URLRequest(url: widget.requestFocusNodeHrefResult?.url),
+              initialSettings: InAppWebViewSettings(
+                  verticalScrollbarThumbColor:
+                      const Color.fromRGBO(0, 0, 0, 0.5),
+                  horizontalScrollbarThumbColor:
+                      const Color.fromRGBO(0, 0, 0, 0.5)),
+              onProgressChanged: (controller, progress) {
+                if (progress > 50) {
+                  setState(() {
+                    _isLinkPreviewReady = true;
+                  });
+                }
+              },
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCopyAddressLink() {
+    return ListTile(
+      title: const Text("Copy address link"),
+      onTap: () {
+        Clipboard.setData(ClipboardData(
+            text: widget.requestFocusNodeHrefResult?.url.toString() ??
+                widget.hitTestResult.extra));
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  Widget _buildShareLink() {
+    return ListTile(
+      title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text("Share link"),
+            Padding(
+              padding: EdgeInsets.only(right: 12.5),
+              child: Icon(
+                Icons.share,
+                color: Colors.black54,
+                size: 20.0,
+              ),
+            )
+          ]),
+      onTap: () {
+        if (widget.hitTestResult.extra != null) {
+          Share.share(widget.requestFocusNodeHrefResult?.url.toString() ??
+              widget.hitTestResult.extra!);
+        }
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  Widget _buildImageTile() {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(
+          left: 15.0, top: 15.0, right: 15.0, bottom: 5.0),
+      leading: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // CachedNetworkImage(
+          //   placeholder: (context, url) => CircularProgressIndicator(),
+          //   imageUrl: widget.hitTestResult.extra,
+          //   height: 50,
+          // ),
+          CustomImage(
+              url: Uri.parse(widget.hitTestResult.extra!),
+              maxWidth: 50.0,
+              height: 50.0)
+        ],
+      ),
+      title: Text(widget.webViewModel.title ?? ""),
+    );
+  }
+
+  Widget _buildDownloadImage() {
+    return ListTile(
+      title: const Text("Download image"),
+      onTap: () async {
+        String? url = widget.hitTestResult.extra;
+        if (url != null) {
+          var uri = Uri.parse(widget.hitTestResult.extra!);
+          // String path = uri.path;
+          // String fileName = path.substring(path.lastIndexOf('/') + 1);
+          // Directory? directory = await getExternalStorageDirectory();
+          MobileDownloadService.downloadFile(uri.toString());
+        }
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      },
+    );
+  }
+
+  Widget _buildShareImage() {
+    return ListTile(
+      title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text("Share image"),
+            Padding(
+              padding: EdgeInsets.only(right: 12.5),
+              child: Icon(
+                Icons.share,
+                color: Colors.black54,
+                size: 20.0,
+              ),
+            )
+          ]),
+      onTap: () {
+        if (widget.hitTestResult.extra != null) {
+          Share.share(widget.hitTestResult.extra!);
+        }
+        Navigator.pop(context);
+      },
+    );
+  }
+}

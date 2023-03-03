@@ -1,105 +1,63 @@
-// ignore_for_file: avoid_print
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'downloadService.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+
+import 'browser.dart';
+import 'models/webview_model.dart';
+
+// ignore: non_constant_identifier_names
+late final double TAB_VIEWER_BOTTOM_OFFSET_1;
+// ignore: non_constant_identifier_names
+late final double TAB_VIEWER_BOTTOM_OFFSET_2;
+// ignore: non_constant_identifier_names
+late final double TAB_VIEWER_BOTTOM_OFFSET_3;
+// ignore: constant_identifier_names
+const double TAB_VIEWER_TOP_OFFSET_1 = 0.0;
+// ignore: constant_identifier_names
+const double TAB_VIEWER_TOP_OFFSET_2 = 10.0;
+// ignore: constant_identifier_names
+const double TAB_VIEWER_TOP_OFFSET_3 = 20.0;
+// ignore: constant_identifier_names
+const double TAB_VIEWER_TOP_SCALE_TOP_OFFSET = 250.0;
+// ignore: constant_identifier_names
+const double TAB_VIEWER_TOP_SCALE_BOTTOM_OFFSET = 230.0;
 
 void main() async {
-  runApp(const MaterialApp(home: WebView()));
-}
+  WidgetsFlutterBinding.ensureInitialized();
 
-class WebView extends StatefulWidget {
-  const WebView({super.key});
+  TAB_VIEWER_BOTTOM_OFFSET_1 = 130.0;
+  TAB_VIEWER_BOTTOM_OFFSET_2 = 140.0;
+  TAB_VIEWER_BOTTOM_OFFSET_3 = 150.0;
 
-  @override
-  State<WebView> createState() => _WebViewState();
-}
+  await Permission.storage.request();
 
-class _WebViewState extends State<WebView> {
-  late final WebViewController controller;
-  final String loadURL = 'http://m.naver.com';
-
-  @override
-  initState() {
-    super.initState();
-
-    // #docregion webview_controller
-    controller = WebViewController()
-      ..addJavaScriptChannel('imgDownload',
-          onMessageReceived: (JavaScriptMessage message) {
-        String imageUrl = message.message;
-        _showDownloadDialog(context, imageUrl);
-      })
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setUserAgent("random")
-      ..setBackgroundColor(const Color(0x00000000))
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onProgress: (int progress) {},
-          onPageStarted: (String url) {
-            print("pageStart: $url");
-          },
-          onPageFinished: (String url) {},
-          onWebResourceError: (WebResourceError error) {},
-          onNavigationRequest: (NavigationRequest request) {
-            print(request.url);
-            return NavigationDecision.navigate;
-          },
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => WebViewModel(url: WebUri('https://google.com')),
         ),
-      )
-      ..loadRequest(Uri.parse(loadURL));
-    // #enddocregion webview_controller
-  }
+      ],
+      child: const FlutterBrowserApp(),
+    ),
+  );
+}
 
-  // #docregion webview_widget
+class FlutterBrowserApp extends StatelessWidget {
+  const FlutterBrowserApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-          child: WillPopScope(
-              child: WebViewWidget(controller: controller),
-              onWillPop: () => _goBack(context))),
-    );
-  }
-
-  // #enddocregion webview_widget
-  Future<bool> _goBack(BuildContext context) async {
-    if (await controller.canGoBack()) {
-      controller.goBack();
-      return Future.value(false);
-    } else {
-      return Future.value(true);
-    }
-  }
-
-  void _showDownloadDialog(BuildContext context, String url) {
-    showDialog(
-        context: context,
-        builder: (BuildContext ctx) {
-          return AlertDialog(
-            content: const Text("이미지를 다운로드 하실건가요?"),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    print("url: $url");
-                    _downloadFile(url);
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("예")),
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("아니오")),
-            ],
-          );
+    return MaterialApp(
+        title: 'Flutter Browser',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const Browser(),
         });
-  }
-
-  Future<void> _downloadFile(String url) async {
-    MobileDownloadService downloadService = MobileDownloadService();
-    await downloadService.download(url: url);
   }
 }
