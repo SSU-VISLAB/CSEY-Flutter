@@ -17,6 +17,7 @@
     1. Windows 및 브라우저는 platform이 달라서 실행 불가
     2. andriod emulator가 없을 경우 실행 불가
 5. emulator 선택 후 `lib` - `main.dart`에서 Crtl + F5로 실행
+
 ## Files
 ```bash
 project
@@ -28,58 +29,35 @@ project
     │       │   └── AndroidManifest.xml
     │       └── profile
     │           └── AndroidManifest.xml
-    ├── lib
-    │   ├── main.dart (main)
-    │   └── downloadService.dart
-    └── pubspec.yaml (package.json역할)
+    ├── pubspec.yaml
+    └── lib
+        ├── browser.dart
+        ├── custom_image.dart
+        ├── custom_popup_dialog.dart
+        ├── custom_popup_menu_item.dart
+        ├── long_press_alert_dialog.dart
+        ├── main.dart
+        ├── material_transparent_page_route.dart
+        ├── multiselect_dialog.dart
+        ├── util.dart
+        ├── webview_window.dart
+        |
+        ├─ floating_button
+        |    └── floating_bubble.dart
+        |       
+        ├─ models
+        |    ├─ download_model.dart
+        |    └─ webview_model.dart
+        |       
+        └─ pages
+            └─ settings
+                ├── android_settings.dart
+                ├── cross_platform_settings.dart
+                ├── ios_settings.dart
+                └── main.dart
 ```
-- `main.dart`
-    - ### function
-    - ```dart 
-      initState()
-      // WebView controller 세팅. webview 조작에 관한 설정들을 할 수 있다.
-    - ```dart 
-      Widget build(BuildContext context)
-      // view 세팅. event handler를 등록할 수 있다.
-    - ```dart
-      Future<bool> _goBack(BuildContext context) async
-      // 뒤로가기 이벤트 콜백 함수. 이전 페이지가 있으면 그 페이지로 이동, 없으면 앱 종료
-    - ```dart
-      void _showDownloadDialog(BuildContext context, String url)
-      // javascript channel에서 메세지를 수신하면 실행시킬 함수
-      // 다운로드 여부를 묻는 모달창을 하나 띄워준다.
-    - ```dart
-      Future<void> _downloadFile(String url) async
-      //다운로드 함수. 다운로드 후 열기 기능을 제공한다.
-- `downloadService.dart`
-    - ```dart
-      Future<void> download({required String url}) async
-      // 다운로드 함수
-## Usage
-
-web에서 다음 코드와 같이 jsChannel을 통해 데이터(url)를 전송해줘야 한다.
-- `main.dart` 
-    ```dart
-    // flutter 
-    controller = WebViewController()
-        ..addJavaScriptChannel('imgDownload', // 채널 이름
-            onMessageReceived: (JavaScriptMessage message) { // 데이터 수신 콜백함수
-        String imageUrl = message.message;
-        _showDownloadDialog(context, imageUrl); // 모달창 띄우기
-    })
-- `html`
-    ```html
-    <img src="url" onclick="downloadImage(this.src)" />
-- `javascript`
-    ```javascript
-    <script>
-        function downloadImage(imageUrl) {
-            window.imgDownload.postMessage(imageUrl); // window.채널이름.postMessage
-        }
-    </script>
 
 ## TODO
 - [ ] ios 설정(안드로이드만 했음)
-- [ ] 우측 하단 네비게이션 버튼 추가
 - [ ] 초기 페이지 변경
-- [ ] 다운로드 폴더 변경(필요시)
+- [ ] 다운로드 폴더 변경 팝업(필요시)

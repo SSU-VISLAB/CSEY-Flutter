@@ -1,4 +1,4 @@
-class PopupMenuActions {
+class FloatingButtonActions {
   // ignore: constant_identifier_names
   static const String HOME = "Home";
   // ignore: constant_identifier_names

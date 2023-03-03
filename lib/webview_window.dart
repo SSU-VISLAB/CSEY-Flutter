@@ -9,18 +9,18 @@ import 'long_press_alert_dialog.dart';
 import 'models/download_model.dart';
 import 'models/webview_model.dart';
 import 'util.dart';
-// import 'models/download_model.dart';
 
-class WebViewTab extends StatefulWidget {
-  const WebViewTab({Key? key, required this.webViewModel}) : super(key: key);
+class WebViewWindow extends StatefulWidget {
+  const WebViewWindow({Key? key, required this.webViewModel}) : super(key: key);
 
   final WebViewModel webViewModel;
 
   @override
-  State<WebViewTab> createState() => _WebViewTabState();
+  State<WebViewWindow> createState() => _WebViewWindowState();
 }
 
-class _WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
+class _WebViewWindowState extends State<WebViewWindow>
+    with WidgetsBindingObserver {
   InAppWebViewController? _webViewController;
   PullToRefreshController? _pullToRefreshController;
   FindInteractionController? _findInteractionController;
@@ -226,16 +226,6 @@ class _WebViewTabState extends State<WebViewTab> with WidgetsBindingObserver {
 
         widget.webViewModel.needsToCompleteInitialLoad = false;
         currentWebViewModel.updateWithValue(widget.webViewModel);
-
-        // var screenshotData = _webViewController
-        //     ?.takeScreenshot(
-        //         screenshotConfiguration: ScreenshotConfiguration(
-        //             compressFormat: CompressFormat.JPEG, quality: 20))
-        //     .timeout(
-        //       const Duration(milliseconds: 1500),
-        //       onTimeout: () => null,
-        //     );
-        // widget.webViewModel.screenshot = await screenshotData;
       },
       onUpdateVisitedHistory: (controller, url, androidIsReload) async {
         widget.webViewModel.url = url;
