@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "491214968405",
+    "project_id": "test-csey",
+    "storage_bucket": "test-csey.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:491214968405:android:a4d1d34217d35f327ba6dc",
+        "android_client_info": {
+          "package_name": "com.example.csey"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "491214968405-lanoqf6ikgvferl85pe1nddsg800gsn1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCh4snm28_9Nn4jZR2i5lil-vB8xmYpNTc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "491214968405-lanoqf6ikgvferl85pe1nddsg800gsn1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
