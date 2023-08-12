@@ -25,40 +25,13 @@ class _BrowserState extends State<Browser> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     getDeviceToken();
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      RemoteNotification? notification = message.notification;
-
-      if (notification != null) {
-        FlutterLocalNotificationsPlugin().show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'high_importance_channel',
-              'high_importance_notification',
-              importance: Importance.max,
-            ),
-          ),
-        );
-        setState(() {
-          msgString = message.notification!.body!;
-          print("Foreground 메시지 수신: $msgString");
-        });
-      }
-    });
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    precacheImage(const AssetImage("assets/icon/icon.png"), context);
+    // precacheImage(const AssetImage("assets/icon/icon.png"), context);
   }
 
   @override
